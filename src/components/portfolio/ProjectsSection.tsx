@@ -6,6 +6,7 @@ import type {
 import { projects, publications, awards } from "@/lib/cv-data";
 import { Cpu, Network, Trophy, Waves } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type Card =
   | ({ kind: "project" } & ProjectCard)
@@ -115,6 +116,46 @@ export function ProjectsSection() {
                   )}
                 </div>
               )}
+
+              {card.kind === "project" && card.title === "Bluetooth Car" ? (
+                <div className="mt-5">
+                  {card.youtubeUrl && card.youtubeUrl.trim().length > 0 ? (
+                    <Button
+                      href={card.youtubeUrl}
+                      variant="outline"
+                      size="sm"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Watch on YouTube
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" disabled>
+                      Watch on YouTube
+                    </Button>
+                  )}
+                </div>
+              ) : null}
+
+              {card.kind === "project" && card.title === "AI Trading Bot" ? (
+                <div className="mt-5">
+                  {card.githubUrl && card.githubUrl.trim().length > 0 ? (
+                    <Button
+                      href={card.githubUrl}
+                      variant="outline"
+                      size="sm"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View GitHub
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" disabled>
+                      View GitHub
+                    </Button>
+                  )}
+                </div>
+              ) : null}
 
               {card.kind === "publication" && (
                 <a

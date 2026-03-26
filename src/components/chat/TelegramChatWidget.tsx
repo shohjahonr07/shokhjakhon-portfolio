@@ -39,20 +39,6 @@ export function TelegramChatWidget() {
   const storageKey = "tg_bridge_messages_v1";
   const messagesRef = React.useRef<TelegramMessageRow[]>(messages);
 
-  function isPageReload() {
-    try {
-      // Best-effort: detect true reload vs SPA navigation.
-      const navEntries = performance.getEntriesByType(
-        "navigation",
-      ) as PerformanceNavigationTiming[];
-      const nav = navEntries?.[0];
-      if (nav?.type === "reload") return true;
-      return false;
-    } catch {
-      return false;
-    }
-  }
-
   React.useEffect(() => {
     openRef.current = open;
   }, [open]);
@@ -73,16 +59,11 @@ export function TelegramChatWidget() {
 
     if (typeof window === "undefined") return;
 
-    const onLoad = () => {
-      if (isPageReload()) clearStorage();
-    };
-
+    const onLoad = () => clearStorage();
     window.addEventListener("load", onLoad, { once: true });
 
-    // If the component mounts after load has already fired, clear only if it's a reload.
-    if (document.readyState === "complete" && isPageReload()) {
-      clearStorage();
-    }
+    // If the component mounts after load has already fired, clear immediately.
+    if (document.readyState === "complete") clearStorage();
 
     return () => window.removeEventListener("load", onLoad);
   }, []);

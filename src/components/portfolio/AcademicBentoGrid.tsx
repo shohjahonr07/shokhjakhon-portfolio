@@ -1,42 +1,44 @@
 import { academicScores } from "@/lib/cv-data";
-import { Badge } from "@/components/ui/badge";
 
 export function AcademicBentoGrid() {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {academicScores.map((item) => (
-        <div
-          key={item.label}
-          className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-white/5 p-5 backdrop-blur-xl"
-        >
-          <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-glow/10 blur-2xl" />
-          <div className="relative flex items-start justify-between gap-4">
-            <div>
-              <div className="text-sm font-medium text-foreground/75">
-                {item.label}
-              </div>
-              <div className="mt-2 text-xs text-foreground/70">
-                University of Messina
-              </div>
-            </div>
-            <Badge
-              variant="glow"
-              className="animate-soft-pulse px-4 py-1 shadow-[0_0_42px_rgba(16,185,129,0.22)]"
-            >
-              {item.score}/{item.outOf}
-            </Badge>
-          </div>
+    <div className="rounded-3xl border border-foreground/10 bg-white/5 p-6 backdrop-blur-xl">
+      <div className="overflow-hidden rounded-2xl border border-foreground/10">
+        <table className="w-full border-collapse text-sm">
+          <thead className="bg-black/10">
+            <tr className="text-left">
+              <th className="px-4 py-3 font-semibold text-foreground/80">
+                Subject
+              </th>
+              <th className="px-4 py-3 font-semibold text-foreground/80">
+                Score
+              </th>
+              <th className="px-4 py-3 font-semibold text-foreground/80">
+                Institution
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {academicScores.map((item) => (
+              <tr key={item.label} className="border-t border-foreground/10">
+                <td className="px-4 py-3 text-foreground/85">{item.label}</td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex rounded-full border border-glow/20 bg-glow/10 px-3 py-1 text-foreground shadow-[0_0_28px_rgba(16,185,129,0.18)]">
+                    {item.score}/{item.outOf}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-foreground/70">
+                  University of Messina
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-          <div className="relative mt-4 rounded-2xl border border-foreground/10 bg-black/10 p-4">
-            <div className="text-xs font-medium text-foreground/70">
-              Achievement Badge
-            </div>
-            <div className="mt-1 text-sm leading-6 text-foreground/85">
-              Perfect performance (30/30).
-            </div>
-          </div>
-        </div>
-      ))}
+      <div className="mt-5 text-xs leading-6 text-foreground/65">
+        Consistent 30/30 achievement across core disciplines.
+      </div>
     </div>
   );
 }

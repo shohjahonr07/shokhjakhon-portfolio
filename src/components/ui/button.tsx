@@ -26,14 +26,17 @@ const buttonVariants = cva(
   },
 );
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof buttonVariants> & {
-    /**
-     * When provided, the button renders as an anchor (`<a>`) instead of a
-     * `<button>`.
-     */
-    href?: string;
-  };
+type ButtonAsButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  href?: undefined;
+};
+
+type ButtonAsAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  href: string;
+};
+
+export type ButtonProps =
+  | (VariantProps<typeof buttonVariants> & ButtonAsButtonProps)
+  | (VariantProps<typeof buttonVariants> & ButtonAsAnchorProps);
 
 export function Button({
   className,
@@ -45,17 +48,15 @@ export function Button({
   const classes = cn(buttonVariants({ variant, size }), className);
 
   if (typeof href === "string") {
-    const anchorProps =
-      props as unknown as React.AnchorHTMLAttributes<
-        HTMLAnchorElement
-      >;
+    const anchorProps = props as React.AnchorHTMLAttributes<HTMLAnchorElement>;
     return (
       <a className={classes} href={href} {...anchorProps} />
     );
   }
 
+  const buttonProps = props as React.ButtonHTMLAttributes<HTMLButtonElement>;
   return (
-    <button className={classes} {...props} />
+    <button className={classes} {...buttonProps} />
   );
 }
 

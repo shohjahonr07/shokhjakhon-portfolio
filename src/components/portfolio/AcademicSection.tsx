@@ -11,11 +11,11 @@ export function AcademicSection() {
                 Academic Excellence
               </div>
               <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                30/30. Repeated. Verified.
+                30/30, in the core.
               </h2>
               <p className="text-sm leading-7 text-foreground/75 sm:text-base">
-                Calculus, Discrete Mathematics, and Applied Physics from the
-                University of Messina.
+                Calculus, Discrete Math, and Physics from the University of
+                Messina.
               </p>
 
               <div className="rounded-2xl border border-foreground/10 bg-black/10 p-4">

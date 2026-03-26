@@ -40,7 +40,7 @@ export function TopNav() {
             Contact
           </a>
           <a
-            href="https://github.com/"
+            href="https://github.com/shokhjakhonrustamov2007"
             target="_blank"
             rel="noreferrer"
             className="hidden items-center justify-center rounded-xl border border-foreground/15 bg-white/5 p-2 text-foreground/80 hover:bg-white/10 sm:inline-flex"
