@@ -59,13 +59,29 @@ export function TelegramChatWidget() {
 
     if (typeof window === "undefined") return;
 
-    const onLoad = () => clearStorage();
-    window.addEventListener("load", onLoad, { once: true });
+    const shouldClearOnThisLoad = () => {
+      try {
+        const navEntries = performance.getEntriesByType(
+          "navigation",
+        ) as PerformanceNavigationTiming[];
+        const nav = navEntries?.[0];
+        return nav?.type === "reload";
+      } catch {
+        return false;
+      }
+    };
 
-    // If the component mounts after load has already fired, clear immediately.
-    if (document.readyState === "complete") clearStorage();
+    const onLoadMaybe = () => {
+      if (shouldClearOnThisLoad()) clearStorage();
+    };
+    window.addEventListener("load", onLoadMaybe, { once: true });
 
-    return () => window.removeEventListener("load", onLoad);
+    // If the component mounts after load has already fired, clear only if this was a reload.
+    if (document.readyState === "complete" && shouldClearOnThisLoad()) {
+      clearStorage();
+    }
+
+    return () => window.removeEventListener("load", onLoadMaybe);
   }, []);
 
   React.useEffect(() => {

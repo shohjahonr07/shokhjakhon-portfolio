@@ -127,11 +127,11 @@ export function ProjectsSection() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Watch on YouTube
+                      View on YouTube
                     </Button>
                   ) : (
                     <Button variant="outline" size="sm" disabled>
-                      Watch on YouTube
+                      View on YouTube
                     </Button>
                   )}
                 </div>
@@ -147,11 +147,11 @@ export function ProjectsSection() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      View GitHub
+                      View on GitHub
                     </Button>
                   ) : (
                     <Button variant="outline" size="sm" disabled>
-                      View GitHub
+                      View on GitHub
                     </Button>
                   )}
                 </div>

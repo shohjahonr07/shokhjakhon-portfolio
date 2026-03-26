@@ -76,7 +76,7 @@ export const projects: ProjectCard[] = [
       "Exness MT4/MT5 integration for execution.",
     ],
     tags: ["Reinforcement Learning", "Technical Indicators", "MT4/MT5"],
-    // Link to your account for now; replace with the exact repo URL you want.
+    // Update this to your exact repo URL when you share it.
     githubUrl: "https://github.com/shokhjakhonrustamov2007",
   },
   {
@@ -88,8 +88,8 @@ export const projects: ProjectCard[] = [
       "Automated upper-side mechanism for simplified operation.",
     ],
     tags: ["Embedded Systems", "ESP32", "Automation"],
-    // TODO: set your exact project video URL from your CV.
-    youtubeUrl: "",
+    // Placeholder until you provide the exact CV video URL.
+    youtubeUrl: "https://www.youtube.com/watch?v=PLACEHOLDER",
   },
 ];
 

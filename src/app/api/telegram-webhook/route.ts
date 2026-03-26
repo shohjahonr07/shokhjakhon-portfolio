@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-import { env } from "@/lib/env";
 import { getSupabaseAdminClient } from "@/lib/SupabaseClient";
 
 type TelegramUpdate = {
@@ -24,58 +22,51 @@ export async function POST(req: Request) {
   try {
     const update = (await req.json().catch(() => ({}))) as TelegramUpdate;
 
-    const supabase = getSupabaseAdminClient();
-    if (!supabase) {
-      throw new Error(
-        "Supabase admin client not configured. Ensure `process.env.SUPABASE_SERVICE_ROLE_KEY` is set.",
-      );
+    // Mandatory: service role bypass for RLS.
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceRoleKey) {
+      throw new Error("Missing `process.env.SUPABASE_SERVICE_ROLE_KEY`.");
     }
 
-    const myChatId = env("TELEGRAM_MY_CHAT_ID");
-    if (!myChatId) {
-      throw new Error("TELEGRAM_MY_CHAT_ID not configured.");
+    const supabaseAdmin = getSupabaseAdminClient();
+    if (!supabaseAdmin) {
+      throw new Error("Supabase admin client not configured.");
+    }
+
+    const telegramMyChatId = process.env.TELEGRAM_MY_CHAT_ID;
+    const telegramMyChatIdStr = telegramMyChatId ? String(telegramMyChatId) : "";
+    if (!telegramMyChatIdStr) {
+      throw new Error("Missing `process.env.TELEGRAM_MY_CHAT_ID`.");
     }
 
     const msg = update.message ?? update.edited_message;
     const chatId = msg?.chat?.id;
-    if (chatId == null) {
-      return NextResponse.json({ ok: true });
-    }
-
-    // Handle the Telegram JSON: only save if it matches TELEGRAM_MY_CHAT_ID.
-    if (String(chatId) !== String(myChatId)) {
-      return NextResponse.json({ ok: true });
-    }
-
     const text =
       (typeof msg?.text === "string" ? msg.text : "") ||
       (typeof msg?.caption === "string" ? msg.caption : "");
 
     const trimmed = text.trim();
-    if (!trimmed) {
-      return NextResponse.json({ ok: true });
+
+    // Validation: only process messages if chat.id matches configured chat id.
+    if (
+      chatId != null &&
+      String(chatId) === telegramMyChatIdStr &&
+      trimmed.length > 0 &&
+      !msg?.from?.is_bot
+    ) {
+      // Data mapping: insert into `content`, set `is_from_admin: true`.
+      const { error: insertError } = await supabaseAdmin
+        .from("messages")
+        .insert({ content: trimmed, is_from_admin: true });
+
+      // Ensure DB write confirmed before returning 200.
+      if (insertError) throw insertError;
     }
 
-    // Ignore bot-originated messages; only phone replies should be persisted as admin.
-    if (msg?.from?.is_bot) {
-      return NextResponse.json({ ok: true });
-    }
-
-    // Ensure we insert into `content` and set `is_from_admin: true`.
-    const { error: insertError } = await supabase
-      .from("messages")
-      .insert({ content: trimmed, is_from_admin: true });
-
-    // Ensure 200 only after DB write is confirmed.
-    if (insertError) throw insertError;
-
-    return NextResponse.json({ ok: true });
+    return Response.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("WEBHOOK_CRASH:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    console.error("WEBHOOK_FAILED_CRITICAL:", error);
+    return Response.json({ success: false }, { status: 500 });
   }
 }
 

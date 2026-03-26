@@ -1,4 +1,5 @@
 import { academicScores } from "@/lib/cv-data";
+import { cn } from "@/lib/utils";
 
 export function AcademicBentoGrid() {
   return (
@@ -21,11 +22,11 @@ export function AcademicBentoGrid() {
           <tbody>
             {academicScores.map((item) => (
               <tr key={item.label} className="border-t border-foreground/10">
-                <td className="px-4 py-3 text-foreground/85">{item.label}</td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex rounded-full border border-glow/20 bg-glow/10 px-3 py-1 text-foreground shadow-[0_0_28px_rgba(16,185,129,0.18)]">
-                    {item.score}/{item.outOf}
-                  </span>
+                <td className="px-4 py-3 text-foreground/85">
+                  {item.label}
+                </td>
+                <td className="px-4 py-3 text-foreground/90">
+                  {item.score}/{item.outOf}
                 </td>
                 <td className="px-4 py-3 text-foreground/70">
                   University of Messina
@@ -36,8 +37,8 @@ export function AcademicBentoGrid() {
         </table>
       </div>
 
-      <div className="mt-5 text-xs leading-6 text-foreground/65">
-        Consistent 30/30 achievement across core disciplines.
+      <div className={cn("mt-5 text-xs leading-6 text-foreground/65")}>
+        Academic performance across core subjects (30/30 each).
       </div>
     </div>
   );
