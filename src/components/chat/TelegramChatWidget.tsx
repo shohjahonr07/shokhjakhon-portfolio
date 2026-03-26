@@ -3,7 +3,7 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, Send } from "lucide-react";
-import { supabaseBrowser } from "@/lib/supabase/browser";
+import { supabaseClient } from "@/lib/SupabaseClient";
 import type { TelegramMessageRow } from "@/lib/telegram/messages";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,7 +42,7 @@ export function TelegramChatWidget() {
     let cancelled = false;
 
     async function init() {
-      if (!supabaseBrowser) {
+      if (!supabaseClient) {
         setError(
           "Supabase is not configured. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to `.env.local`."
         );
@@ -51,7 +51,7 @@ export function TelegramChatWidget() {
 
       setSupabaseReady(true);
 
-      const { data, error } = await supabaseBrowser
+      const { data, error } = await supabaseClient
         .from("messages")
         .select("id,content,is_from_admin,created_at")
         .order("created_at", { ascending: true })
@@ -74,7 +74,7 @@ export function TelegramChatWidget() {
   }, []);
 
   React.useEffect(() => {
-    const client = supabaseBrowser;
+    const client = supabaseClient;
     if (!client) return;
 
     // Subscribe to INSERT events for new messages.
@@ -124,7 +124,7 @@ export function TelegramChatWidget() {
   async function onSend() {
     const trimmed = draft.trim();
     if (!trimmed) return;
-    if (!supabaseBrowser) {
+    if (!supabaseClient) {
       setError("Supabase is not configured.");
       return;
     }

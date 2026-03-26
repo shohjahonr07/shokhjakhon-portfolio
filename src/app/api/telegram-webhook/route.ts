@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { getSupabaseAdminClient } from "@/lib/SupabaseClient";
 
 type TelegramUpdate = {
   message?: {
@@ -23,7 +23,7 @@ type TelegramUpdate = {
 export async function POST(req: Request) {
   const update = (await req.json().catch(() => ({}))) as TelegramUpdate;
 
-  const supabase = getSupabaseAdmin();
+  const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return NextResponse.json(
       { error: "Supabase admin client not configured." },

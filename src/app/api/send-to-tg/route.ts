@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { getSupabaseAdminClient } from "@/lib/SupabaseClient";
 
 type Body = {
   content?: unknown;
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const supabase = getSupabaseAdmin();
+  const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return NextResponse.json(
       { error: "Supabase admin client not configured." },
