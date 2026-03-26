@@ -39,8 +39,8 @@ export const hero = {
 
 export const academicScores: BentoScore[] = [
   { label: "Calculus", score: 30, outOf: 30 },
-  { label: "Discrete Mathematics", score: 30, outOf: 30 },
-  { label: "Applied Physics", score: 30, outOf: 30 },
+  { label: "Discrete Math", score: 30, outOf: 30 },
+  { label: "Physics", score: 30, outOf: 30 },
 ];
 
 export const timeline: TimelineItem[] = [

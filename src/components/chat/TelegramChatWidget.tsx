@@ -39,6 +39,20 @@ export function TelegramChatWidget() {
   const storageKey = "tg_bridge_messages_v1";
   const messagesRef = React.useRef<TelegramMessageRow[]>(messages);
 
+  function isPageReload() {
+    try {
+      // Best-effort: detect true reload vs SPA navigation.
+      const navEntries = performance.getEntriesByType(
+        "navigation",
+      ) as PerformanceNavigationTiming[];
+      const nav = navEntries?.[0];
+      if (nav?.type === "reload") return true;
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   React.useEffect(() => {
     openRef.current = open;
   }, [open]);
@@ -49,7 +63,6 @@ export function TelegramChatWidget() {
 
   React.useEffect(() => {
     // Refresh logic: clear chat ONLY on a full page refresh.
-    // Requirement: use window.onload to reset localStorage.
     const clearStorage = () => {
       try {
         localStorage.removeItem(storageKey);
@@ -60,16 +73,18 @@ export function TelegramChatWidget() {
 
     if (typeof window === "undefined") return;
 
-    // If "load" already fired (fast hydration), clear immediately.
-    if (document.readyState === "complete") {
+    const onLoad = () => {
+      if (isPageReload()) clearStorage();
+    };
+
+    window.addEventListener("load", onLoad, { once: true });
+
+    // If the component mounts after load has already fired, clear only if it's a reload.
+    if (document.readyState === "complete" && isPageReload()) {
       clearStorage();
-      return;
     }
 
-    window.addEventListener("load", clearStorage, { once: true });
-    return () => {
-      window.removeEventListener("load", clearStorage);
-    };
+    return () => window.removeEventListener("load", onLoad);
   }, []);
 
   React.useEffect(() => {
@@ -133,33 +148,39 @@ export function TelegramChatWidget() {
           }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        // Supabase realtime status callback (best-effort).
+        if (status === "SUBSCRIBED") {
+          console.debug("tg-chat: realtime subscribed");
+        }
+      });
 
     return () => {
       client.removeChannel(channel);
     };
   }, []);
 
-  // Persistence: keep messages on close; restore from localStorage on re-open if needed.
+  // Persistence: keep chat history in localStorage.
   React.useEffect(() => {
-    if (!open) {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(messagesRef.current));
-      } catch {
-        // ignore
-      }
-      return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(messagesRef.current));
+    } catch {
+      // ignore (private mode / blocked storage)
     }
+  }, [messages]);
 
-    if (open && messagesRef.current.length === 0) {
-      try {
-        const raw = localStorage.getItem(storageKey);
-        if (!raw) return;
-        const parsed = JSON.parse(raw) as TelegramMessageRow[];
-        if (Array.isArray(parsed)) setMessages(parsed.map(normalizeRow));
-      } catch {
-        // ignore
-      }
+  // Restore from localStorage when the widget opens (only if state is empty).
+  React.useEffect(() => {
+    if (!open) return;
+    if (messagesRef.current.length !== 0) return;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as TelegramMessageRow[];
+      if (Array.isArray(parsed)) setMessages(parsed.map(normalizeRow));
+    } catch {
+      // ignore
     }
   }, [open]);
 
@@ -290,6 +311,11 @@ export function TelegramChatWidget() {
                                 : "border-foreground/15 bg-white/5 text-foreground/90",
                             )}
                           >
+                            {m.is_from_admin ? (
+                              <div className="mb-1 text-[10px] font-semibold text-glow">
+                                Agent
+                              </div>
+                            ) : null}
                             {m.content}
                           </div>
                         </motion.div>
