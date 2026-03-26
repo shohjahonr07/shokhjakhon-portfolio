@@ -26,7 +26,10 @@ export async function POST(req: Request) {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return NextResponse.json(
-      { error: "Supabase admin client not configured." },
+      {
+        error:
+          "Supabase admin client not configured. Ensure `process.env.SUPABASE_SERVICE_ROLE_KEY` is set.",
+      },
       { status: 500 },
     );
   }
@@ -64,16 +67,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  const { error: insertError } = await supabase.from("messages").insert({
-    content: text.trim(),
-    is_from_admin: true,
-  });
+  try {
+    // Column names: `content` (not `text`)
+    // Admin flag: `is_from_admin: true`
+    const { error: insertError } = await supabase.from("messages").insert({
+      content: text.trim(),
+      is_from_admin: true,
+    });
 
-  if (insertError) {
-    return NextResponse.json(
-      { error: insertError.message },
-      { status: 500 },
-    );
+    if (insertError) throw insertError;
+  } catch (error) {
+    console.error("telegram-webhook: database insert failed", {
+      error,
+      chatId,
+    });
+
+    return NextResponse.json({ error: "Database insert failed." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
