@@ -20,7 +20,10 @@ function normalizeRow(row: TelegramMessageRow): TelegramMessageRow {
 }
 
 function messageKey(m: TelegramMessageRow, idx: number) {
-  return m.id ? String(m.id) : `idx-${idx}`;
+  if (m.id != null) return String(m.id);
+  const t = m.created_at ? String(m.created_at) : "na";
+  const c = (m.content ?? "").slice(0, 40);
+  return `${m.is_from_admin ? "admin" : "user"}-${t}-${c}-${idx}`;
 }
 
 export function TelegramChatWidget() {
@@ -33,51 +36,41 @@ export function TelegramChatWidget() {
   const [supabaseReady, setSupabaseReady] = React.useState(false);
 
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  const storageKey = "tg_bridge_messages_v1";
+  const messagesRef = React.useRef<TelegramMessageRow[]>(messages);
 
   React.useEffect(() => {
     openRef.current = open;
   }, [open]);
 
   React.useEffect(() => {
-    let cancelled = false;
+    messagesRef.current = messages;
+  }, [messages]);
 
-    async function init() {
-      if (!supabaseClient) {
-        setError(
-          "Supabase is not configured. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to `.env.local`."
-        );
-        return;
-      }
-
-      setSupabaseReady(true);
-
-      const { data, error } = await supabaseClient
-        .from("messages")
-        .select("id,content,is_from_admin,created_at")
-        .order("created_at", { ascending: true })
-        .limit(50);
-
-      if (cancelled) return;
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setMessages((data ?? []).map(normalizeRow));
-      }
+  React.useEffect(() => {
+    // Volatility requirement: refresh clears localStorage so chat starts fresh.
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // ignore (private mode / blocked storage)
     }
+  }, []);
 
-    init();
-
-    return () => {
-      cancelled = true;
-    };
+  React.useEffect(() => {
+    if (!supabaseClient) {
+      setError(
+        "Supabase is not configured. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to `.env.local`."
+      );
+    }
   }, []);
 
   React.useEffect(() => {
     const client = supabaseClient;
     if (!client) return;
 
-    // Subscribe to INSERT events for new messages.
+    setSupabaseReady(true);
+
+    // Realtime: only INSERTs for new messages.
     const channel = client
       .channel("messages-realtime")
       .on(
@@ -93,14 +86,24 @@ export function TelegramChatWidget() {
 
           setMessages((prev) => {
             const alreadyExists =
-              normalized.id != null &&
-              prev.some((p) => p.id != null && String(p.id) === String(normalized.id));
+              normalized.id != null
+                ? prev.some(
+                    (p) => p.id != null && String(p.id) === String(normalized.id),
+                  )
+                : prev.some((p) => {
+                    const timeA = p.created_at ? String(p.created_at) : "na";
+                    const timeB = normalized.created_at ? String(normalized.created_at) : "na";
+                    return (
+                      timeA === timeB &&
+                      p.is_from_admin === normalized.is_from_admin &&
+                      p.content === normalized.content
+                    );
+                  });
+
             if (alreadyExists) return prev;
-            return [...prev, normalized].sort((a, b) => {
-              const at = a.created_at ? new Date(a.created_at).getTime() : 0;
-              const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
-              return at - bt;
-            });
+
+            // Append only (no sorting) so keys + animations stay stable.
+            return [...prev, normalized];
           });
 
           // Keep user at the bottom for "cinematic chat" feel.
@@ -120,6 +123,29 @@ export function TelegramChatWidget() {
       client.removeChannel(channel);
     };
   }, []);
+
+  // Persistence: keep messages on close; restore from localStorage on re-open if needed.
+  React.useEffect(() => {
+    if (!open) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(messagesRef.current));
+      } catch {
+        // ignore
+      }
+      return;
+    }
+
+    if (open && messagesRef.current.length === 0) {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as TelegramMessageRow[];
+        if (Array.isArray(parsed)) setMessages(parsed.map(normalizeRow));
+      } catch {
+        // ignore
+      }
+    }
+  }, [open]);
 
   async function onSend() {
     const trimmed = draft.trim();
@@ -224,28 +250,37 @@ export function TelegramChatWidget() {
                   </div>
                 ) : null}
 
-                <div className="space-y-3">
-                  {messages.map((m, idx) => (
-                    <div
-                      key={messageKey(m, idx)}
-                      className={cn(
-                        "flex",
-                        m.is_from_admin ? "justify-start" : "justify-end",
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "max-w-[78%] rounded-2xl border px-3 py-2 text-sm leading-5 shadow-sm",
-                          m.is_from_admin
-                            ? "border-glow/25 bg-glow/10 text-foreground/90"
-                            : "border-foreground/15 bg-white/5 text-foreground/90",
-                        )}
-                      >
-                        {m.content}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <AnimatePresence initial={false}>
+                  <div className="space-y-3">
+                    {messages.map((m, idx) => {
+                      const key = messageKey(m, idx);
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{ duration: 0.18, ease: "easeOut" }}
+                          className={cn(
+                            "flex",
+                            m.is_from_admin ? "justify-start" : "justify-end",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "max-w-[78%] rounded-2xl border px-3 py-2 text-sm leading-5 shadow-sm",
+                              m.is_from_admin
+                                ? "border-glow/25 bg-glow/10 text-foreground/90"
+                                : "border-foreground/15 bg-white/5 text-foreground/90",
+                            )}
+                          >
+                            {m.content}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </AnimatePresence>
               </div>
 
               <div className="border-t border-foreground/10 bg-black/10 p-3">

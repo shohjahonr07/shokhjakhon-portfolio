@@ -3,7 +3,6 @@ import { ObsidianBackground } from "@/components/cinematic/ObsidianBackground";
 import { TopNav } from "@/components/portfolio/TopNav";
 import { HeroSection } from "@/components/portfolio/HeroSection";
 import { AcademicSection } from "@/components/portfolio/AcademicSection";
-import { ExperienceSection } from "@/components/portfolio/ExperienceSection";
 import { ProjectsCardsSection } from "@/components/portfolio/ProjectsCardsSection";
 import { ContactSection } from "@/components/portfolio/ContactSection";
 
@@ -21,19 +20,16 @@ export default function Home() {
       <TopNav />
 
       <main className="flex flex-col">
-        <Reveal>
+        <Reveal delayMs={0}>
           <HeroSection />
         </Reveal>
-        <Reveal>
+        <Reveal delayMs={120}>
           <AcademicSection />
         </Reveal>
-        <Reveal>
-          <ExperienceSection />
-        </Reveal>
-        <Reveal>
+        <Reveal delayMs={240}>
           <ProjectsCardsSection />
         </Reveal>
-        <Reveal>
+        <Reveal delayMs={360}>
           <ContactSection />
         </Reveal>
 
