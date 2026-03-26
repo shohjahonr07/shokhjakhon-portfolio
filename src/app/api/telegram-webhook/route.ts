@@ -24,6 +24,18 @@ export async function POST(req: Request) {
   try {
     const update = (await req.json().catch(() => ({}))) as TelegramUpdate;
 
+    console.log("telegram-webhook: received update", {
+      hasMessage: Boolean(update.message),
+      hasEditedMessage: Boolean(update.edited_message),
+    });
+
+    const hasServiceRoleKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+    if (!hasServiceRoleKey) {
+      console.error(
+        "telegram-webhook: missing SUPABASE_SERVICE_ROLE_KEY (service role required to bypass RLS)"
+      );
+    }
+
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
       console.error(
@@ -49,6 +61,7 @@ export async function POST(req: Request) {
 
     const msg = update.message ?? update.edited_message;
     const chatId = msg?.chat?.id;
+    const messageId = msg?.message_id;
 
     if (chatId == null) {
       console.log("telegram-webhook: missing chat id; ignoring update.");
@@ -75,7 +88,10 @@ export async function POST(req: Request) {
 
     // Ignore messages sent by the bot itself; we only want your phone replies.
     if (msg?.from?.is_bot) {
-      console.log("telegram-webhook: bot message ignored.");
+      console.log("telegram-webhook: bot message ignored.", {
+        messageId,
+        chatId,
+      });
       return NextResponse.json({ ok: true });
     }
 
@@ -91,6 +107,7 @@ export async function POST(req: Request) {
         console.error("telegram-webhook: supabase insert error", {
           insertError,
           chatId,
+          messageId,
           contentPreview: trimmed.slice(0, 80),
         });
         return NextResponse.json(
@@ -102,6 +119,7 @@ export async function POST(req: Request) {
       console.error("telegram-webhook: database insert threw", {
         error,
         chatId,
+        messageId,
         textPreview: text.trim().slice(0, 80),
       });
       return NextResponse.json(

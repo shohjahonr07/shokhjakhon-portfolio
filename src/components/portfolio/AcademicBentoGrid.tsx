@@ -1,4 +1,5 @@
 import { academicScores } from "@/lib/cv-data";
+import { Badge } from "@/components/ui/badge";
 
 export function AcademicBentoGrid() {
   return (
@@ -11,28 +12,27 @@ export function AcademicBentoGrid() {
           <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-glow/10 blur-2xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
-              <div className="text-sm text-foreground/70">
+              <div className="text-sm font-medium text-foreground/75">
                 {item.label}
               </div>
-              <div className="mt-2 text-4xl font-semibold tracking-tight">
-                {item.score}
-                <span className="ml-2 text-base font-medium text-foreground/65">
-                  / {item.outOf}
-                </span>
+              <div className="mt-2 text-xs text-foreground/70">
+                University of Messina
               </div>
             </div>
-            <div className="text-xs font-medium text-glow">30/30</div>
+            <Badge
+              variant="glow"
+              className="animate-soft-pulse px-4 py-1 shadow-[0_0_42px_rgba(16,185,129,0.22)]"
+            >
+              {item.score}/{item.outOf}
+            </Badge>
           </div>
 
-          <div className="relative mt-5">
-            <div className="h-2 w-full rounded-full bg-white/5">
-              <div
-                className="h-2 rounded-full bg-glow/80 shadow-[0_0_24px_rgba(16,185,129,0.35)]"
-                style={{ width: `${Math.round((item.score / item.outOf) * 100)}%` }}
-              />
+          <div className="relative mt-4 rounded-2xl border border-foreground/10 bg-black/10 p-4">
+            <div className="text-xs font-medium text-foreground/70">
+              Achievement Badge
             </div>
-            <div className="mt-3 text-xs leading-5 text-foreground/70">
-              University of Messina • performance highlight
+            <div className="mt-1 text-sm leading-6 text-foreground/85">
+              Perfect performance (30/30).
             </div>
           </div>
         </div>

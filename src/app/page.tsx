@@ -3,6 +3,7 @@ import { ObsidianBackground } from "@/components/cinematic/ObsidianBackground";
 import { TopNav } from "@/components/portfolio/TopNav";
 import { HeroSection } from "@/components/portfolio/HeroSection";
 import { AcademicSection } from "@/components/portfolio/AcademicSection";
+import { ExperienceSection } from "@/components/portfolio/ExperienceSection";
 import { ProjectsCardsSection } from "@/components/portfolio/ProjectsCardsSection";
 import { ContactSection } from "@/components/portfolio/ContactSection";
 
@@ -24,12 +25,15 @@ export default function Home() {
           <HeroSection />
         </Reveal>
         <Reveal delayMs={120}>
-          <AcademicSection />
+          <ExperienceSection />
         </Reveal>
         <Reveal delayMs={240}>
-          <ProjectsCardsSection />
+          <AcademicSection />
         </Reveal>
         <Reveal delayMs={360}>
+          <ProjectsCardsSection />
+        </Reveal>
+        <Reveal delayMs={480}>
           <ContactSection />
         </Reveal>
 

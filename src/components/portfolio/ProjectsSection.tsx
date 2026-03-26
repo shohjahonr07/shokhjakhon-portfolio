@@ -43,14 +43,24 @@ export function ProjectsSection() {
     ...awards.map((a) => ({ kind: "award" as const, ...a })),
   ];
 
+  function getSpan(card: Card) {
+    if (card.kind === "project" && card.title === "AI Trading Bot") {
+      return "md:col-span-7 lg:col-span-7";
+    }
+    if (card.kind === "project" && card.title === "Bluetooth Car") {
+      return "md:col-span-5 lg:col-span-5";
+    }
+    return "md:col-span-6 lg:col-span-6";
+  }
+
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-12">
       {cards.map((card) => {
         const Icon = getIconForCard(card);
         return (
           <div
             key={card.title}
-            className={`relative overflow-hidden rounded-3xl border border-foreground/10 bg-white/5 p-6 backdrop-blur-xl ${getCardAccent(card)}`}
+            className={`relative overflow-hidden rounded-3xl border border-foreground/10 bg-white/5 p-6 backdrop-blur-xl ${getCardAccent(card)} md:col-span-12 ${getSpan(card)}`}
           >
             <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-glow/10 blur-2xl" />
             <div className="relative">

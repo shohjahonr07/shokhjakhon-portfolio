@@ -27,8 +27,8 @@ export function ContactSection() {
                   Session behavior
                 </div>
                 <div className="mt-1 text-sm leading-6 text-foreground/85">
-                  Closing the widget keeps messages. Refresh clears chat so you
-                  can test clean flows.
+                  Close/re-open persists chat in `localStorage`.
+                  Refresh resets chat on `window.onload` for clean testing.
                 </div>
               </div>
             </div>

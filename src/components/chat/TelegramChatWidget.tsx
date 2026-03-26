@@ -48,12 +48,28 @@ export function TelegramChatWidget() {
   }, [messages]);
 
   React.useEffect(() => {
-    // Volatility requirement: refresh clears localStorage so chat starts fresh.
-    try {
-      localStorage.removeItem(storageKey);
-    } catch {
-      // ignore (private mode / blocked storage)
+    // Refresh logic: clear chat ONLY on a full page refresh.
+    // Requirement: use window.onload to reset localStorage.
+    const clearStorage = () => {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {
+        // ignore (private mode / blocked storage)
+      }
+    };
+
+    if (typeof window === "undefined") return;
+
+    // If "load" already fired (fast hydration), clear immediately.
+    if (document.readyState === "complete") {
+      clearStorage();
+      return;
     }
+
+    window.addEventListener("load", clearStorage, { once: true });
+    return () => {
+      window.removeEventListener("load", clearStorage);
+    };
   }, []);
 
   React.useEffect(() => {
